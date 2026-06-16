@@ -9,6 +9,7 @@ public class UI_Manager : MonoBehaviour
     public static UI_Manager ui_Manager;
     //[SerializeField]private TextMeshProUGUI standTimerText;
     [SerializeField]private GameObject bustPanel;
+    [SerializeField]private GameObject bjPanel;
     
     void Awake()
     {
@@ -35,5 +36,9 @@ public class UI_Manager : MonoBehaviour
     public void BustUI()
     {
         bustPanel.SetActive(true);
+    }
+    public void BlackJackUI()
+    {
+        bjPanel.SetActive(true);
     }
 }
