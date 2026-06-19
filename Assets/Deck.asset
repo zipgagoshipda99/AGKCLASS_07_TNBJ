@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   deck:
   - sprite: {fileID: 21300000, guid: a05bb0f5a0f237142b781397fa4df811, type: 3}
-    cardValue: 21
+    cardValue: 1
   - sprite: {fileID: 21300000, guid: 1380947218fb35e4a954141952d45379, type: 3}
     cardValue: 2
   - sprite: {fileID: 21300000, guid: 36092d5aae7ffee4b84c634aebae89e2, type: 3}

@@ -16,6 +16,7 @@ public class HandController : MonoBehaviour
     private BJ_GameState gameState = BJ_GameState.playerTurn;
     
     private List<GameObject> handCards = new List<GameObject>();
+    private Animator animator;
     private int playerNum = 0;
     private int dealerNum = 0;
     private int cardCount = 0;
@@ -26,12 +27,12 @@ public class HandController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       //chosenCardSprite = GetComponent<SpriteRenderer>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        
     }
     void OnEnable()
     {
@@ -43,6 +44,7 @@ public class HandController : MonoBehaviour
     {
         hitButton.onClick.RemoveListener(Hit); 
         standButton.onClick.RemoveListener(Stand); 
+        standButton.onClick.RemoveListener(Deal); 
         //버튼 이벤트 끄기
     }
     private void Deal()
@@ -51,11 +53,19 @@ public class HandController : MonoBehaviour
         Hit();
         DealerDraw();
         DealerDraw();
+        if (playerNum == 21 && dealerNum < 21)
+        {
+            UI_Manager.ui_Manager.BlackJackUI(); // blackjack condition.
+            return;
+        }
     }
     private void Hit()
     {
         Card randomCard = deckStructure.GetRandomCards();
         SpriteRenderer createdCard = Instantiate(cardPrefab);
+        animator = createdCard.GetComponent<Animator>();
+        animator.SetBool("wasCreated", true);
+        Debug.Log($"card -> {createdCard}, animation -> {animator}");
         handCards.Add(createdCard.gameObject);
         createdCard.sprite = randomCard.sprite;
         createdCard.transform.position += new Vector3(0.75f*cardCount,0,0);
@@ -66,25 +76,53 @@ public class HandController : MonoBehaviour
         playerNum += randomCard.cardValue;
         cardCount++;        
         Debug.Log($"Drawn Card {randomCard.sprite.name}, {randomCard.cardValue}, TOTAL player value : {playerNum} ");
-        if(playerNum > 21)
+        switch (playerNum)
+        {
+            case 21:
+                break;
+            case > 21:
+                break;
+        }   
+        if(playerNum == 21)
+        {
+            Stand();
+            return;
+        } 
+        else if(playerNum > 21) UI_Manager.ui_Manager.BustUI();
+
+    }
+
+    private void WinDecider(int playerScore, int dealerScore)
+    {
+        if (playerScore > 21 || dealerScore > 21  || dealerScore > playerScore)
         {
             UI_Manager.ui_Manager.BustUI();
             clearHand();
         }
-        else if(playerNum == 21)
+        else if (playerScore == dealerScore)
         {
-            UI_Manager.ui_Manager.BlackJackUI();
+            UI_Manager.ui_Manager.Push(); // push condition.
             clearHand();
         }
-        
+        else if (playerScore == 21 && dealerScore < 21)
+        {
+            UI_Manager.ui_Manager.BlackJackUI(); // blackjack condition.
+            clearHand();
+        }
+        else if (playerScore > dealerScore)
+        {
+            UI_Manager.ui_Manager.NaturalWinUI(); // natural win condition.
+            clearHand();
+        }
     }
+
     private void DealerDraw()
     {
         Card randomCard = deckStructure.GetRandomCards();
         SpriteRenderer createdCard = Instantiate(cardPrefab);
         handCards.Add(createdCard.gameObject);
         createdCard.sprite = randomCard.sprite;
-        createdCard.transform.position = new Vector3(0.75f * dealerCardCount, -4f, 0); // -2 = dealer's row
+        createdCard.transform.position = new Vector3(0.75f * dealerCardCount, 4f, 0); // -2 = dealer's row
         createdCard.transform.rotation = Quaternion.Euler(0, 0, 3f * dealerCardCount);
         dealerNum += randomCard.cardValue; 
         dealerCardCount++;
@@ -95,8 +133,10 @@ public class HandController : MonoBehaviour
         while (dealerNum < 17)
         {
             DealerDraw();
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(1f);
         }
+        gameState = BJ_GameState.roundOver;
+        WinDecider(playerNum, dealerNum);
     }
     public void clearHand()
     {
