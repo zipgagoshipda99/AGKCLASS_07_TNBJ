@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using Unity.VisualScripting;
 
-public class HandController : MonoBehaviour
+public class HandController : Subject
 {
     [SerializeField]private SpriteRenderer cardPrefab;
     [SerializeField]private SpriteRenderer hiddenCardRenderer;
@@ -16,7 +16,8 @@ public class HandController : MonoBehaviour
     [SerializeField]private Button dealButton;
     [SerializeField]private Deck deckStructure;
     [SerializeField]private Sprite cardCover;
-
+    private Card plrAceCard;
+    private Card dealerAceCard;
     private BJ_GameState gameState = BJ_GameState.playerTurn;
     
     private List<GameObject> allHandCards = new List<GameObject>();
@@ -28,11 +29,15 @@ public class HandController : MonoBehaviour
     private int dealerCardCount = 0;
     bool showDealerCard = false;
     private bool timerEnabled = false;
-    private bool fadeIn = false;
+    private bool SoftHand = false;
+    private bool HardHand = false;
     private Coroutine timerCoroutine;
 
 
-    // Start is called before the first frame update
+    public void Start()
+    {
+        NotifyObservers(  );
+    }
     void Awake()
     {
         UI_Manager.ui_Manager.standButtonObj.SetActive(false);
@@ -40,10 +45,6 @@ public class HandController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        
-    }
     void OnEnable()
     {
         hitButton.onClick.AddListener(Hit);
@@ -86,6 +87,10 @@ public class HandController : MonoBehaviour
     {
         // timerEnabled = false;
         Card randomCard = deckStructure.GetRandomCards();
+        // if(randomCard.cardValue ==1)
+        // {
+        //     randomCard = plrAceCard;
+        // }
         SpriteRenderer createdCard = Instantiate(cardPrefab);
         animator = createdCard.GetComponent<Animator>();
         animator.SetBool("wasCreated", true);
@@ -101,6 +106,7 @@ public class HandController : MonoBehaviour
         playerNum += randomCard.cardValue;
         Debug.Log($"Drawn Card {randomCard.sprite.name}, {randomCard.cardValue}, TOTAL player value : {playerNum} ");
         if (gameState != BJ_GameState.playerTurn) return; //player 턴 아니면 여기서 함수 끝 player턴 이면 이후로 넘어감
+        RevealDealerCard();
         StopTimer();
         switch (playerNum)
         {
@@ -125,40 +131,65 @@ public class HandController : MonoBehaviour
         // }
         StartTimer(); //player 턴일때 hit를 해도 두가지 case에 안 닿을때 다시 타이머를 시작(자동 선택하게)
     }
+    private void DealerDraw()
+    {
+        Card randomCard = deckStructure.GetRandomCards();
+        // if (randomCard.cardValue == 1)
+        // {
+        //     randomCard = dealerAceCard;
+        // }
+        SpriteRenderer createdCard = Instantiate(cardPrefab); //even if card prefab references sprite renderer instatnitate makes a copy of the object with that sprite renderer component.
+        //and created card only references the spriterenderer component.
+        allHandCards.Add(createdCard.gameObject);
+        dealerHandCards.Add(createdCard.gameObject);
+        createdCard.sprite = randomCard.sprite;
+        createdCard.transform.position = new Vector3(0.75f * dealerCardCount, 4f, 0); // -2 = dealer's row
+        createdCard.transform.rotation = Quaternion.Euler(0, 0, 3f * dealerCardCount);
+        dealerNum += randomCard.cardValue;
+        dealerCardCount++;
+        Debug.Log($"dealer drawn {randomCard.sprite.name}, {randomCard.cardValue}, TOTAL dealer value : {dealerNum} ");
+        if (dealerCardCount == 2)
+        {
+            hiddenCardFace = randomCard.sprite;
+            hiddenCardRenderer = createdCard; // dealer 카드 2번째의 스프라이트 렌더러를 기억하도록 저장.
+            hiddenCardRenderer.sprite = cardCover;
+        }
+    }
+    private void Stand()
+    {
+        StopTimer();
+        UI_Manager.ui_Manager.StartCoroutine(UI_Manager.ui_Manager.FadeOut());
+        gameState = BJ_GameState.dealerTurn;
+        StartCoroutine(DealerHit()); 
+    }
 
     private void WinDecider(int playerScore, int dealerScore) //win decider는 deal 이후 hit / stand 할때 판단하는 메소드
     {
         if (dealerScore > 21)
         {
             UI_Manager.ui_Manager.DealerBustUI();
-            
-            ClearHand();
         }
         else if (playerScore == dealerScore)
         {
             UI_Manager.ui_Manager.Push(); // push condition.
-            ClearHand();
         }
         else if (playerScore > dealerScore)
         {
             UI_Manager.ui_Manager.NaturalWinUI(); // natural win condition.
-            ClearHand();
         }
-        // else if (dealerScore > playerScore)
-        // {
-        //     UI_Manager.ui_Manager.NaturalWinUI();  이거 아직 필요한지 모름... 버그 날까바다 내일 (6/22에 체크)
-        //     ClearHand();
-        // }
+        else if (dealerScore > playerScore)
+        {
+            UI_Manager.ui_Manager.NaturalWinUI();  
+        }
         else if (playerScore == 21 && dealerScore < 21)
         {
             UI_Manager.ui_Manager.BlackJackUI(); // blackjack condition.
-            ClearHand();
         }
         else if(dealerScore == 21 && playerScore < 21)
         {
             UI_Manager.ui_Manager.DealerBlackJackUI(); // dealer blackjack condition.
-            ClearHand();
         }
+        ClearHand();
     }
     private IEnumerator TimerLimit()
     {
@@ -202,26 +233,6 @@ public class HandController : MonoBehaviour
         }
     }
 
-    private void DealerDraw()
-    {
-        Card randomCard = deckStructure.GetRandomCards();
-        SpriteRenderer createdCard = Instantiate(cardPrefab); //even if card prefab references sprite renderer instatnitate makes a copy of the object with that sprite renderer component.
-        //and created card only references the spriterenderer component.
-        allHandCards.Add(createdCard.gameObject);
-        dealerHandCards.Add(createdCard.gameObject);
-        createdCard.sprite = randomCard.sprite;
-        createdCard.transform.position = new Vector3(0.75f * dealerCardCount, 4f, 0); // -2 = dealer's row
-        createdCard.transform.rotation = Quaternion.Euler(0, 0, 3f * dealerCardCount);
-        dealerNum += randomCard.cardValue;
-        dealerCardCount++;
-        Debug.Log($"dealer drawn {randomCard.sprite.name}, {randomCard.cardValue}, TOTAL dealer value : {dealerNum} ");
-        if (dealerCardCount == 2)
-        {
-            hiddenCardFace = randomCard.sprite;
-            hiddenCardRenderer = createdCard; // dealer 카드 2번째의 스프라이트 렌더러를 기억하도록 저장.
-            hiddenCardRenderer.sprite = cardCover;
-        }
-    }
     private void RevealDealerCard()
     {
         if(hiddenCardRenderer != null)
@@ -238,7 +249,7 @@ public class HandController : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
         gameState = BJ_GameState.roundOver;
-        
+
         WinDecider(playerNum, dealerNum);
     }
     public void ClearHand()
@@ -256,13 +267,25 @@ public class HandController : MonoBehaviour
         plrCardCount = 0;
         dealerCardCount = 0;
     }
-    private void Stand()
+    public bool CheckSoftHand()
     {
-        StopTimer();
-        UI_Manager.ui_Manager.StartCoroutine(UI_Manager.ui_Manager.FadeOut());
-        gameState = BJ_GameState.dealerTurn;
-        StartCoroutine(DealerHit()); 
+        
+        if(playerNum + 11 < 21)
+        {
+            plrAceCard.cardValue = 11;
+            return SoftHand;
+        }
+        return SoftHand == false;
     }
+    public bool CheckHardHand()
+    {
+        if(playerNum + 11 > 21)
+        {
+            return HardHand;
+        }
+        return HardHand == false;
+    }
+    
     public enum BJ_GameState
     {
         Deal,

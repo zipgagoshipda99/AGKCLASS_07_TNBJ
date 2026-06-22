@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using Unity.Mathematics;
 using System;
 using Unity.VisualScripting;
-public class UI_Manager : MonoBehaviour
+public class UI_Manager : MonoBehaviour, IObserver
 {
     // Start is called before the first frame update
     public static UI_Manager ui_Manager;
@@ -23,8 +23,12 @@ public class UI_Manager : MonoBehaviour
     [SerializeField] public CanvasGroup UI_buttons;
     [SerializeField]public TextMeshProUGUI timerText;
     [SerializeField]private GameObject[] ResultPanelsArray;
+    [SerializeField]private Subject _handSubject;
     private bool timerOn = false;
-    
+    public void OnNotify()
+    {
+        Debug.Log("UI MANAGER SYSTEM : NOTIFIED");
+    }
     void Awake()
     {
         if (ui_Manager != null)
@@ -35,9 +39,13 @@ public class UI_Manager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    public void OnEnable()
     {
-        
+        _handSubject.AddObserver(this);
+    }
+    void OnDisable()
+    {
+        _handSubject.RemoveObserver(this);
     }
     public void BustUI()=>bustPanel.SetActive(true);
     
