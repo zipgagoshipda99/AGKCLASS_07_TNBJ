@@ -1,8 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.SearchService;
 using UnityEngine;
-[System.Serializable]
+[System.Serializable] 
 public struct Card
 {
     public Sprite sprite;

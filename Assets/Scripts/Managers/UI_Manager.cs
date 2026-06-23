@@ -20,14 +20,17 @@ public class UI_Manager : MonoBehaviour, IObserver
     [SerializeField]private GameObject dealerWinPanel;
     [SerializeField]public GameObject hitButtonObj;
     [SerializeField]public GameObject standButtonObj;
+     [SerializeField] public GameObject dealStartButtonObj;
     [SerializeField] public CanvasGroup UI_buttons;
     [SerializeField]public TextMeshProUGUI timerText;
     [SerializeField]private GameObject[] ResultPanelsArray;
     [SerializeField]private Subject _handSubject;
     private bool timerOn = false;
-    public void OnNotify()
+    void Start()
     {
-        Debug.Log("UI MANAGER SYSTEM : NOTIFIED");
+        dealStartButtonObj.SetActive(false);
+        hitButtonObj.SetActive(false);
+        standButtonObj.SetActive(false);
     }
     void Awake()
     {
@@ -36,6 +39,21 @@ public class UI_Manager : MonoBehaviour, IObserver
             Destroy(gameObject);
         }
         else{ui_Manager = this;}
+    }
+    public void OnNotify(GameResult gameResult)
+    {
+        switch (gameResult)
+        {
+            case GameResult.PlayerBust: bustPanel.SetActive(true); break;
+            case GameResult.DealerBust: dealerBustPanel.SetActive(true); break;
+            case GameResult.PlayerWin: winPanel.SetActive(true); break;
+            case GameResult.DealerWin: dealerWinPanel.SetActive(true); break;
+            case GameResult.Push: pushPanel.SetActive(true); break;
+            case GameResult.PlayerBJ: bjPanel.SetActive(true); break;
+            case GameResult.DealerBJ: dealerBjPanel.SetActive(true); break;
+        }
+        
+        
     }
 
     // Update is called once per frame

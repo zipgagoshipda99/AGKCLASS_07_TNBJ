@@ -34,10 +34,6 @@ public class HandController : Subject
     private Coroutine timerCoroutine;
 
 
-    public void Start()
-    {
-        NotifyObservers(  );
-    }
     void Awake()
     {
         UI_Manager.ui_Manager.standButtonObj.SetActive(false);
@@ -55,7 +51,7 @@ public class HandController : Subject
     {
         hitButton.onClick.RemoveListener(Hit); 
         standButton.onClick.RemoveListener(Stand); 
-        standButton.onClick.RemoveListener(Deal); 
+        dealButton.onClick.RemoveListener(Deal); 
         //버튼 이벤트 끄기
     }
     private void Deal()
@@ -68,6 +64,7 @@ public class HandController : Subject
         // timerEnabled = true;
         if (playerNum == 21 && dealerNum < 21)
         {
+            RevealDealerCard();
             UI_Manager.ui_Manager.BlackJackUI();  // instant blackjack condition.
             ClearHand();
             return;
@@ -114,7 +111,7 @@ public class HandController : Subject
                 Stand();
                 return;
             case > 21:
-                UI_Manager.ui_Manager.BustUI();
+                NotifyObservers(GameResult.PlayerBust);
                 UI_Manager.ui_Manager.StartCoroutine(UI_Manager.ui_Manager.FadeOut());
                 return;
         }   
@@ -167,27 +164,27 @@ public class HandController : Subject
     {
         if (dealerScore > 21)
         {
-            UI_Manager.ui_Manager.DealerBustUI();
+            NotifyObservers(GameResult.DealerBust);
         }
-        else if (playerScore == dealerScore)
+        else if (playerScore == dealerScore)// push condition.
         {
-            UI_Manager.ui_Manager.Push(); // push condition.
-        }
-        else if (playerScore > dealerScore)
-        {
-            UI_Manager.ui_Manager.NaturalWinUI(); // natural win condition.
-        }
-        else if (dealerScore > playerScore)
-        {
-            UI_Manager.ui_Manager.NaturalWinUI();  
+            NotifyObservers(GameResult.Push);
         }
         else if (playerScore == 21 && dealerScore < 21)
         {
-            UI_Manager.ui_Manager.BlackJackUI(); // blackjack condition.
+            NotifyObservers(GameResult.PlayerBJ); // plr blackjack condition.
         }
         else if(dealerScore == 21 && playerScore < 21)
         {
-            UI_Manager.ui_Manager.DealerBlackJackUI(); // dealer blackjack condition.
+            NotifyObservers(GameResult.DealerBJ); // dealer blackjack condition.
+        }
+        else if (playerScore > dealerScore)
+        {
+            NotifyObservers(GameResult.PlayerWin); // plr win condition.
+        }
+        else if (dealerScore > playerScore)
+        {
+            NotifyObservers(GameResult.DealerWin); //dealer win condition
         }
         ClearHand();
     }
