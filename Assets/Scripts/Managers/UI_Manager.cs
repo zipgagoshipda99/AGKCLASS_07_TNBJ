@@ -28,7 +28,6 @@ public class UI_Manager : MonoBehaviour, IObserver
     private bool timerOn = false;
     void Start()
     {
-        dealStartButtonObj.SetActive(false);
         hitButtonObj.SetActive(false);
         standButtonObj.SetActive(false);
     }
@@ -65,19 +64,6 @@ public class UI_Manager : MonoBehaviour, IObserver
     {
         _handSubject.RemoveObserver(this);
     }
-    public void BustUI()=>bustPanel.SetActive(true);
-    
-    public void DealerBustUI()=> dealerBustPanel.SetActive(true);
-    
-    public void Push()=> pushPanel.SetActive(true);
-    
-    
-    public void BlackJackUI()=>bjPanel.SetActive(true);
-    public void DealerBlackJackUI()=>dealerBjPanel.SetActive(true);
-    
-    public void NaturalWinUI()=>winPanel.SetActive(true);
-    
-    public void DealerWinUI()=>dealerWinPanel.SetActive(true);
     
     public IEnumerator HideAllResultPanels()
     {

@@ -32,6 +32,13 @@ public class HandController : Subject
     private bool SoftHand = false;
     private bool HardHand = false;
     private Coroutine timerCoroutine;
+    public enum BJ_GameState
+    {
+        Deal,
+        playerTurn,
+        dealerTurn,
+        roundOver
+    }
 
 
     void Awake()
@@ -65,13 +72,13 @@ public class HandController : Subject
         if (playerNum == 21 && dealerNum < 21)
         {
             RevealDealerCard();
-            UI_Manager.ui_Manager.BlackJackUI();  // instant blackjack condition.
+            NotifyObservers(GameResult.PlayerBJ);  // instant blackjack condition.
             ClearHand();
             return;
         }
         if (dealerNum == 21)
         {
-            UI_Manager.ui_Manager.DealerBlackJackUI();
+            NotifyObservers(GameResult.DealerBJ);
         }
         StartTimer();
         UI_Manager.ui_Manager.StartCoroutine(UI_Manager.ui_Manager.FadeIn());
@@ -283,11 +290,4 @@ public class HandController : Subject
         return HardHand == false;
     }
     
-    public enum BJ_GameState
-    {
-        Deal,
-        playerTurn,
-        dealerTurn,
-        roundOver
-    }
 }
