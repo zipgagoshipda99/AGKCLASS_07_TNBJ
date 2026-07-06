@@ -16,6 +16,8 @@ public class HandController : Subject
     [SerializeField]private Button dealButton;
     [SerializeField]private Deck deckStructure;
     [SerializeField]private Sprite cardCover;
+    [SerializeField]private BetInput betInput;
+    [SerializeField]private Wallet wallet;
     private Card plrAceCard;
     private Card dealerAceCard;
     private BJ_GameState gameState = BJ_GameState.playerTurn;
@@ -63,6 +65,7 @@ public class HandController : Subject
     }
     private void Deal()
     {
+        betInput.LockBets();
         gameState = BJ_GameState.Deal;
         Hit();
         Hit();
@@ -74,6 +77,7 @@ public class HandController : Subject
             RevealDealerCard();
             NotifyObservers(GameResult.PlayerBJ);  // instant blackjack condition.
             ClearHand();
+            
             return;
         }
         if (dealerNum == 21)

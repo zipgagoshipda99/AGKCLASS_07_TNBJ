@@ -1,25 +1,36 @@
 
-using System.Windows.Input;
 
-public class BetCommand : IAction
+using UnityEngine;
+
+public class BetCommand : ICommand
 {
     // Start is called before the first frame update
-    public Chip _chip;
-    public Wallet _wallet;
-    public BetCommand(Chip chip, Wallet wallet) //constructor a method called at instatiation of a class.
+    
+    private readonly Wallet _wallet;
+    private readonly GameObject _prefab;
+    private readonly Transform _anchor;
+    private GameObject _spawnedChip;
+    private readonly int _money;
+    public BetCommand(Wallet wallet, Transform anchor, GameObject prefab, int money) //constructor a method called at instatiation of a class.
     {
-        this._chip = chip;
-        this._wallet = wallet;
+        _wallet = wallet;
+        _anchor = anchor;
+        _prefab = prefab;
+        _money = money;
     }
     public bool Execute()
     {
-        _chip.PlayAnim();
-        return false;
+        if (!_wallet.PlaceBet(_money))return false;
+        _spawnedChip = Object.Instantiate(_prefab, _anchor);
+        
+        return true;
+
     }
 
     // Update is called once per frame
-    void Update()
+    public void Undo()
     {
-        
+        _wallet.RefundBet(_money);
+        Object.Destroy(_spawnedChip);
     }
 }

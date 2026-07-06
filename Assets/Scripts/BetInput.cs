@@ -1,24 +1,35 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Windows.Input;
 using Unity.VisualScripting;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class BetInput : MonoBehaviour
 {
-    [SerializeField]private Button bet5;
-    [SerializeField]private Button bet10;
-    [SerializeField]private Button bet100;
-    [SerializeField]private Button bet1000;
-    [SerializeField]private Button bet5000;
-    [SerializeField]private Button bet10000;
-    public Chip chip;
+    [SerializeField]private Wallet wallet;
+    [SerializeField]private Transform tableAnchor;
     
-    public void OnEnable()
+    [SerializeField]Stack<ICommand> _commandList = new Stack<ICommand>();
+    public void OnChipClicked(int money, GameObject prefab)
     {
-       bet5.onClick.AddListener(chip.PlayAnim);
+        ICommand command = new BetCommand(wallet,tableAnchor,prefab,money);
+        if (command.Execute())
+        {
+            _commandList.Push(command);
+        }
+    }
+    public void OnUndoClick()
+    {
+        if (_commandList.Count > 0) 
+            _commandList.Pop().Undo();
     }
 
+    public void LockBets()
+    {
+        _commandList.Clear();
+    }
 
 
 }

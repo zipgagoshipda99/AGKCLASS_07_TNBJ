@@ -9,17 +9,31 @@ public class Chip : MonoBehaviour
     // Start is called before the first frame update
     [SerializeField]private Button chipButton;
     [SerializeField]private GameObject chipPrefab;
+    [SerializeField]private BetInput betInput;
 
-    public int moneyAmount = 0;
-    public string AnimStateName;
-    private Animator animator;
-    void Awake()
-    {
-        animator = GetComponent<Animator>();
-        chipButton = GetComponent<Button>();
+    public int moneyAmount;
+    void OnEnable()
+    {                                 //괄호 없, 메서드 자체를 보관
+        chipButton.onClick.AddListener(Clicked); //add lisenter stores the method it self. it must have no parameters and have a return type of void.
+        
     }
-    public void PlayAnim()
-    {
-        animator.Play(AnimStateName);
+    void OnDisable()
+    {                                 //괄호 없, 메서드 자체를 보관
+        chipButton.onClick.AddListener(Clicked); //add lisenter stores the method it self. it must have no parameters and have a return type of void.
+        
     }
+    public void Clicked()
+    {
+        betInput.OnChipClicked(moneyAmount, chipPrefab);
+        // AnimateButton();
+         
+    }
+    // void Start()
+    // {
+    //     animator = GetComponent<Animator>();
+    // }
+    // private void AnimateButton()
+    // {
+    //     animator.Play(AnimStateName);
+    // }
 }
