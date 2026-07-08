@@ -24,4 +24,21 @@ public class Wallet : MonoBehaviour
         totalMoney += amount;
         currentBet -= amount;
     }
+    public void WinBet(float profitMultiplier)
+    {                 //베팅했을때 차감했던 베텡금액 + profitMultiplier 곱한 베팅금액을 더해주는거
+        totalMoney += currentBet + (int)(currentBet * profitMultiplier);
+        currentBet = 0;
+        OnMoneyChanged?.Invoke();
+    }
+    public void LoseBet()
+    {
+        currentBet = 0;
+        OnMoneyChanged?.Invoke();
+    }
+    public void PushBet()
+    {
+        totalMoney += currentBet;// 베팅금액 환불
+        currentBet = 0; //리셋
+        OnMoneyChanged?.Invoke();
+    }
 }

@@ -56,5 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "AGKCLASS_07_TNBJ.sln"
+    "dotnet.defaultSolution": "AGKCLASS_07_TNBJ.sln",
+    "dotnet.preferCSharpExtension": true
 }

@@ -17,7 +17,7 @@ public class HandController : Subject
     [SerializeField]private Deck deckStructure;
     [SerializeField]private Sprite cardCover;
     [SerializeField]private BetInput betInput;
-    [SerializeField]private Wallet wallet;
+    [SerializeField]private Wallet wallet;  
     private Card plrAceCard;
     private Card dealerAceCard;
     private BJ_GameState gameState = BJ_GameState.playerTurn;
@@ -30,7 +30,6 @@ public class HandController : Subject
     private int plrCardCount = 0;
     private int dealerCardCount = 0;
     bool showDealerCard = false;
-    private bool timerEnabled = false;
     private bool SoftHand = false;
     private bool HardHand = false;
     private Coroutine timerCoroutine;
@@ -71,18 +70,33 @@ public class HandController : Subject
         Hit();
         DealerDraw();
         DealerDraw();
-        // timerEnabled = true;
+        //  = true;
         if (playerNum == 21 && dealerNum < 21)
         {
             RevealDealerCard();
-            NotifyObservers(GameResult.PlayerBJ);  // instant blackjack condition.
+            NotifyObservers(GameResult.PlayerBJ);
+            wallet.WinBet(1.5f); //베팅금액 차감한거 추가하면 2.5배 payout // instant blackjack condition.
             ClearHand();
-            
+            betInput.ResetTableChips4NewRound();
             return;
         }
-        if (dealerNum == 21)
+        if (dealerNum == 21 && playerNum < 21)
         {
+            RevealDealerCard();
             NotifyObservers(GameResult.DealerBJ);
+            wallet.LoseBet();
+            ClearHand();
+            betInput.ResetTableChips4NewRound();
+            return;
+        }
+        if (dealerNum == 21 && playerNum == 21)
+        {
+            NotifyObservers(GameResult.Push);
+            RevealDealerCard();
+            wallet.PushBet();
+            ClearHand();
+            betInput.ResetTableChips4NewRound();
+            return;
         }
         StartTimer();
         UI_Manager.ui_Manager.StartCoroutine(UI_Manager.ui_Manager.FadeIn());
@@ -93,7 +107,7 @@ public class HandController : Subject
     }
     private void Hit()
     {
-        // timerEnabled = false;
+        //  = false;
         Card randomCard = deckStructure.GetRandomCards();
         // if(randomCard.cardValue ==1)
         // {
@@ -123,6 +137,9 @@ public class HandController : Subject
                 return;
             case > 21:
                 NotifyObservers(GameResult.PlayerBust);
+                wallet.LoseBet();
+                ClearHand();
+                betInput.ResetTableChips4NewRound();
                 UI_Manager.ui_Manager.StartCoroutine(UI_Manager.ui_Manager.FadeOut());
                 return;
         }   
@@ -176,35 +193,34 @@ public class HandController : Subject
         if (dealerScore > 21)
         {
             NotifyObservers(GameResult.DealerBust);
+            wallet.WinBet(1f);
+
         }
         else if (playerScore == dealerScore)// push condition.
         {
             NotifyObservers(GameResult.Push);
-        }
-        else if (playerScore == 21 && dealerScore < 21)
-        {
-            NotifyObservers(GameResult.PlayerBJ); // plr blackjack condition.
-        }
-        else if(dealerScore == 21 && playerScore < 21)
-        {
-            NotifyObservers(GameResult.DealerBJ); // dealer blackjack condition.
+            wallet.PushBet();
+
         }
         else if (playerScore > dealerScore)
         {
-            NotifyObservers(GameResult.PlayerWin); // plr win condition.
+            NotifyObservers(GameResult.PlayerWin);
+            wallet.WinBet(1f); // plr win condition.
         }
-        else if (dealerScore > playerScore)
+        else if (playerScore < dealerScore)
         {
             NotifyObservers(GameResult.DealerWin); //dealer win condition
+            wallet.LoseBet();
         }
         ClearHand();
+        betInput.ResetTableChips4NewRound();
     }
     private IEnumerator TimerLimit()
     {
         yield return new WaitForSeconds(5f);
         for(int i = 5; i>0; i--)
         {
-            // if (!timerEnabled)
+            // if (!)
             // {
             //     UI_Manager.ui_Manager.timerText.text = "";
             //     yield break;

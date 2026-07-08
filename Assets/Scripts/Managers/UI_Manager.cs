@@ -25,6 +25,12 @@ public class UI_Manager : MonoBehaviour, IObserver
     [SerializeField]public TextMeshProUGUI timerText;
     [SerializeField]private GameObject[] ResultPanelsArray;
     [SerializeField]private Subject _handSubject;
+    [SerializeField]private TextMeshProUGUI totalMoneyText;
+    [SerializeField]private TextMeshProUGUI betAmountText;
+    [SerializeField]public Button undoButton;
+    [SerializeField]private Wallet wallet;
+    [SerializeField]private BetInput betInput;
+     
     private bool timerOn = false;
     void Start()
     {
@@ -59,12 +65,17 @@ public class UI_Manager : MonoBehaviour, IObserver
     public void OnEnable()
     {
         _handSubject.AddObserver(this);
+        undoButton.onClick.AddListener(betInput.OnUndoClick);
     }
     void OnDisable()
     {
         _handSubject.RemoveObserver(this);
+       undoButton.onClick.RemoveListener(betInput.OnUndoClick);
     }
-    
+    public void UndoClicked()
+    {
+        betInput.OnUndoClick(); 
+    }
     public IEnumerator HideAllResultPanels()
     {
         yield return new WaitForSeconds(2f);
@@ -95,5 +106,15 @@ public class UI_Manager : MonoBehaviour, IObserver
             UI_buttons.alpha = Mathf.Lerp(0f, 1f, timeCounter / duration);
             yield return null;
         }
+    }
+    public void RefreshMoneyTexts()
+    {
+        totalMoneyText.text = $"Total Money: {wallet.totalMoney}";
+        betAmountText.text = $"Bet Amount: {wallet.currentBet}";
+    }
+    public void Update()
+    {
+        RefreshMoneyTexts();
+        
     }
 }
